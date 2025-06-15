@@ -1,0 +1,4 @@
+logging:
+  level:
+    root: INFO
+    com.catherinepereira.place_server: DEBUG

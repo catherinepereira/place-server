@@ -1,4 +1,4 @@
-package com.example.place_server;
+package com.catherinepereira.place_server;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
