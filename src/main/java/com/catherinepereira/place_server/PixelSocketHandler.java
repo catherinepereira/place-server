@@ -18,16 +18,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 public class PixelSocketHandler extends TextWebSocketHandler {
-
-    private final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
+    private final int width;
+    private final int height;
+    private final String[][] board;
 
     public record PlaceMessage(@JsonProperty("x") int x, @JsonProperty("y") int y, @JsonProperty("color") String color) {}
 
-    private static final int xDim = 100;
-    private static final int yDim = 100;
-    public String[][] board = new String[xDim][yDim];
+    private final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
 
     private static final Logger logger = LoggerFactory.getLogger(PixelSocketHandler.class);
+
+    public PixelSocketHandler(int width, int height) {
+        this.board = new String[width][height];
+        this.width = width;
+        this.height = height;
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
@@ -37,7 +42,7 @@ public class PixelSocketHandler extends TextWebSocketHandler {
         // Replicate board to new client
         var objectMapper = new ObjectMapper();
 
-        String[] batchedMessages = new String[xDim * yDim];
+        String[] batchedMessages = new String[width * height];
 
         for (int x = 0; x < board.length; x++) {
             for (int y = 0; y < board[x].length; y++) {
@@ -54,7 +59,7 @@ public class PixelSocketHandler extends TextWebSocketHandler {
                     logger.error(e.getMessage());
                     return;
                 }
-                batchedMessages[y * yDim + x] = json;
+                batchedMessages[y * height + x] = json;
             }
         }
 
