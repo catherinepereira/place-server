@@ -1,4 +1,4 @@
-package com.catherinepereira.place_server;
+package com.catherinepereira.placeserver;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -9,15 +9,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
-public class PixelSocketHandler extends TextWebSocketHandler {
+public class PixelSocketHandler extends BinaryWebSocketHandler {
     private final int width;
     private final int height;
     private final String[][] board;
@@ -76,25 +76,17 @@ public class PixelSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
-        String payload = message.getPayload();
-        var objectMapper = new ObjectMapper();
-
-        PlaceMessage placeMessage;
-        try {
-            placeMessage = objectMapper.readValue(payload, PlaceMessage.class);
-        } catch (IOException e) {
-            logger.warn("Client {} sent message in improper format, disconnecting.", session.getId(), e);
-            session.close();
-            return;
-        }
-
-        board[placeMessage.x][placeMessage.y] = placeMessage.color;
+    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) {
+        System.out.println("Message payload length" + message.getPayloadLength());
 
         for (WebSocketSession s : sessions) {
             if (s.isOpen()) {
                 logger.debug("Client {} sent message: {}", session.getId(), message);
-                s.sendMessage(message);
+                try {
+                    s.sendMessage(message);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }

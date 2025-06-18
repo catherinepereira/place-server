@@ -1,4 +1,4 @@
-package com.catherinepereira.place_server;
+package com.catherinepereira.placeserver;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -11,6 +11,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new PixelSocketHandler(100, 100), "/ws").setAllowedOrigins("*");
+        registry.addHandler(new PixelSocketHandler(1000, 1000), "/ws").setAllowedOrigins("*");
     }
 }

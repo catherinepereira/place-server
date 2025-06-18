@@ -1,4 +1,4 @@
-package com.catherinepereira.place_server;
+package com.catherinepereira.placeserver;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

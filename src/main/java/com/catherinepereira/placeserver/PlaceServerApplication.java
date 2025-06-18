@@ -1,4 +1,4 @@
-package com.catherinepereira.place_server;
+package com.catherinepereira.placeserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
