@@ -22,6 +22,7 @@ public class PixelSocketHandler extends BinaryWebSocketHandler {
     private final int width;
     private final int height;
     private final int paletteIndexLimit = 15;
+    private final int payloadMaxLength = 5;
     private final int[][] board;
 
     private final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
@@ -66,7 +67,13 @@ public class PixelSocketHandler extends BinaryWebSocketHandler {
     }
 
     @Override
-    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws RuntimeException {
+    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws RuntimeException, IOException {
+        if (message.getPayloadLength() > this.payloadMaxLength) {
+            System.out.println("Client attempted to send message exceeding message limit");
+            session.close();
+            return;
+        }
+
         var payload = message.getPayload();
         var duplicate = payload.duplicate();
 
