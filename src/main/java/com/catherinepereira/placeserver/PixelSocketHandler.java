@@ -10,13 +10,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.socket.BinaryMessage;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
 public class PixelSocketHandler extends BinaryWebSocketHandler {
     private final int width;
@@ -36,29 +34,32 @@ public class PixelSocketHandler extends BinaryWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
+    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         logger.debug("Client connected: {}", session.getId());
         sessions.add(session);
+        session.setBinaryMessageSizeLimit(5);
 
-//        byte[] packedArray = new byte[width * height / 2];
-//
-//        for (int x = 0; x < this.width; x++) {
-//            for (int y = 0; y < this.height; y += 2) {
-//                int currentColor = this.board[x][y];
-//                var nextColor = this.board[x][y + 1];
-//
-///               // Handle case where board size is odd and last color byte in array is undefined
-//
-//                int currentPackedColor = currentColor << 4;
-//                int nextPackedColor = currentPackedColor | nextColor;
-//
-//                byte[] byteArray = ByteBuffer.allocate(2).put((byte) currentPackedColor).put((byte) nextPackedColor).array();
-//                packedArray.push(byteArray);
-//
-//            }
-//        }
+        byte[] packedArray = new byte[this.height * ((this.width + 1) / 2)];
 
-//        session.sendMessage();
+        for (int y = 0; y < this.height; y++) {
+            for (int x = 0; x < this.width; x+=2) {
+
+                int currentColor = this.board[x][y];
+                int currentPackedColor = currentColor << 4;
+
+                int nextColor = 0;
+                if (x + 1 < this.width) {
+                    nextColor = this.board[x+1][y];
+                }
+                int fullPackedColor = currentPackedColor | nextColor;
+
+                packedArray[y * ((this.width + 1) / 2) + (x / 2)] = (byte) fullPackedColor;
+            }
+        }
+
+        BinaryMessage message = new BinaryMessage(packedArray);
+//        System.out.println("Binary Message: " + message.getPayload());
+        new ConcurrentWebSocketSessionDecorator(session, 1, 50).sendMessage(message);
     }
 
     @Override
